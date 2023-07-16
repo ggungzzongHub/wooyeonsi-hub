@@ -5,11 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>뀽쫑 hub</title>
-    <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script>
-        // $(function() {
-        //     $("body").load("https://zerrorkoke.postype.com/post/14783880");
-        // })
+        fetch("./data.json")
+            .then(response => {
+                return response.json();
+            })
+            .then(jsondata => console.log(jsondata)); 
     </script>
     <style>
         /* http://meyerweb.com/eric/tools/css/reset/ 
@@ -30,9 +33,10 @@
         blockquote:before, blockquote:after,
         q:before, q:after {content: '';content: none;}
         table {border-collapse: collapse;border-spacing: 0;}
+        a{color: #000; font-style: none; text-decoration: none;}
 
         header{font-size: 3rem; text-align: center; margin: 50px 0; font-weight: bold;}
-        section{display: grid; grid-template-columns: repeat(3, 1fr); max-width: 1300px; margin: 0 auto;}
+        section{display: grid; grid-template-columns: repeat(3, 1fr); max-width: 1300px; margin: 0 auto; gap: 40px;}
         .box {box-shadow: 0 0 15px #999; border-radius: 10px; overflow: hidden;}
         .box .head{padding: 20px; padding-bottom: 0;}
         .box .head .title {font-weight: bold; font-size: 1.2rem; margin-bottom: 10px;}
@@ -48,13 +52,61 @@
         
         .iframe-box {width: 100%; height: 20rem; overflow: hidden;}
         .iframe-box iframe {height: 40rem; width: 100%; margin-top: -20rem;}
+
+        @media screen and (max-width: 1000px) {
+            section{grid-template-columns: 1fr 1fr;}
+        }
+
+        @media screen and (max-width: 700px) {
+            section{display: flex; gap: 30px; flex-direction: column;}
+        }
    
     </style>
 </head>
 <body>
     <header>뀽쫑 hub</header>
     <section>
-        <a class="box">
+        <a class="box" href="https://ggyuezzong.postype.com/post/14804580">
+            <div class="head">
+                <div class="title">깨진 어금니</div>
+                <div class="head-bt">
+                    <div class="wt-name">기닌</div>
+                    <div class="date">2023.07.00</div>
+                    <div class="cp-name">뀽쫑</div>
+                </div>
+            </div>
+            <div class="keyword">
+                <div class="item">청게</div>
+                <div class="item">제발</div>
+                <div class="item">뀽쫑</div>
+                <div class="item">데이트해</div>
+                <div class="item">노란장판</div>
+            </div>
+            <div class="iframe-box">
+                <iframe src="https://ggyuezzong.postype.com/post/14804580" frameborder="0"></iframe>
+            </div>
+        </a>
+        <a class="box" href="https://ggyuezzong.postype.com/post/14804580">
+            <div class="head">
+                <div class="title">깨진 어금니</div>
+                <div class="head-bt">
+                    <div class="wt-name">기닌</div>
+                    <div class="date">2023.07.00</div>
+                    <div class="cp-name">뀽쫑</div>
+                </div>
+            </div>
+            <div class="keyword">
+                <div class="item">청게</div>
+                <div class="item">제발</div>
+                <div class="item">뀽쫑</div>
+                <div class="item">데이트해</div>
+                <div class="item">노란장판</div>
+            </div>
+            <div class="iframe-box">
+                <iframe src="https://ggyuezzong.postype.com/post/14804580" frameborder="0"></iframe>
+            </div>
+        </a>
+        <a class="box" href="https://ggyuezzong.postype.com/post/14804580">
             <div class="head">
                 <div class="title">깨진 어금니</div>
                 <div class="head-bt">
