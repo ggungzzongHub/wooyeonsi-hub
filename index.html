@@ -5,15 +5,48 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>뀽쫑 hub</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script>
         fetch("./data.json")
             .then(response => {
                 return response.json();
             })
-            .then(jsondata => console.log(jsondata)); 
+            .then(jsondata => {
+                for(item of jsondata){
+                    let keywordStr = "";
+                    for(key of item.keyword){
+                        keywordStr += `<div class="item">${key}</div>`;
+                    }
+
+                    const htmlStr = `<a class="box" href="${item.src}">
+                        <div class="head">
+                            <div class="title">${item.title}</div>
+                            <div class="head-bt">
+                                <div class="wt-name">${item.wrName}</div>
+                                <div class="date">${dateFormat(item.date)}</div>
+                                <div class="cp-name">${item.cpName}</div>
+                            </div>
+                        </div>
+                        <div class="keyword">
+                            ${keywordStr}
+                        </div>
+                        <div class="iframe-box">
+                            <iframe src="${item.src}" frameborder="0"></iframe>
+                        </div>
+                    </a>`;
+
+                    document.querySelector("section").insertAdjacentHTML("beforeend", htmlStr);
+                }
+            });
+
+        /**
+         * 날짜 형식 변환기
+         * @param dateStr YYYYMMDDHHMISS
+        */
+        const dateFormat = (dateStr) => {
+            return `${dateStr.slice(0, 4)}.${dateStr.slice(4, 6)}.${dateStr.slice(6, 8)}`
+        }
     </script>
+    
     <style>
         /* http://meyerweb.com/eric/tools/css/reset/ 
         v2.0 | 20110126
@@ -27,7 +60,6 @@
         /* HTML5 display-role reset for older browsers */
         article, aside, details, figcaption, figure, 
         footer, header, hgroup, menu, nav, section { display: block;}
-        body {line-height: 1;overflow: hidden;}
         ol, ul {list-style: none;}
         blockquote, q {quotes: none;}
         blockquote:before, blockquote:after,
@@ -36,7 +68,7 @@
         a{color: #000; font-style: none; text-decoration: none;}
 
         header{font-size: 3rem; text-align: center; margin: 50px 0; font-weight: bold;}
-        section{display: grid; grid-template-columns: repeat(3, 1fr); max-width: 1300px; margin: 0 auto; gap: 40px;}
+        section{display: grid; grid-template-columns: repeat(3, 1fr); max-width: 1300px; margin: 0 auto; gap: 40px; margin-bottom: 50px;}
         .box {box-shadow: 0 0 15px #999; border-radius: 10px; overflow: hidden;}
         .box .head{padding: 20px; padding-bottom: 0;}
         .box .head .title {font-weight: bold; font-size: 1.2rem; margin-bottom: 10px;}
@@ -53,6 +85,9 @@
         .iframe-box {width: 100%; height: 20rem; overflow: hidden;}
         .iframe-box iframe {height: 40rem; width: 100%; margin-top: -20rem;}
 
+        footer * {text-align: center;}
+        footer small {color: #999; display: block; margin-top: 30px;}
+
         @media screen and (max-width: 1000px) {
             section{grid-template-columns: 1fr 1fr;}
         }
@@ -60,72 +95,14 @@
         @media screen and (max-width: 700px) {
             section{display: flex; gap: 30px; flex-direction: column;}
         }
-   
     </style>
 </head>
 <body>
     <header>뀽쫑 hub</header>
-    <section>
-        <a class="box" href="https://ggyuezzong.postype.com/post/14804580">
-            <div class="head">
-                <div class="title">깨진 어금니</div>
-                <div class="head-bt">
-                    <div class="wt-name">기닌</div>
-                    <div class="date">2023.07.00</div>
-                    <div class="cp-name">뀽쫑</div>
-                </div>
-            </div>
-            <div class="keyword">
-                <div class="item">청게</div>
-                <div class="item">제발</div>
-                <div class="item">뀽쫑</div>
-                <div class="item">데이트해</div>
-                <div class="item">노란장판</div>
-            </div>
-            <div class="iframe-box">
-                <iframe src="https://ggyuezzong.postype.com/post/14804580" frameborder="0"></iframe>
-            </div>
-        </a>
-        <a class="box" href="https://ggyuezzong.postype.com/post/14804580">
-            <div class="head">
-                <div class="title">깨진 어금니</div>
-                <div class="head-bt">
-                    <div class="wt-name">기닌</div>
-                    <div class="date">2023.07.00</div>
-                    <div class="cp-name">뀽쫑</div>
-                </div>
-            </div>
-            <div class="keyword">
-                <div class="item">청게</div>
-                <div class="item">제발</div>
-                <div class="item">뀽쫑</div>
-                <div class="item">데이트해</div>
-                <div class="item">노란장판</div>
-            </div>
-            <div class="iframe-box">
-                <iframe src="https://ggyuezzong.postype.com/post/14804580" frameborder="0"></iframe>
-            </div>
-        </a>
-        <a class="box" href="https://ggyuezzong.postype.com/post/14804580">
-            <div class="head">
-                <div class="title">깨진 어금니</div>
-                <div class="head-bt">
-                    <div class="wt-name">기닌</div>
-                    <div class="date">2023.07.00</div>
-                    <div class="cp-name">뀽쫑</div>
-                </div>
-            </div>
-            <div class="keyword">
-                <div class="item">청게</div>
-                <div class="item">제발</div>
-                <div class="item">뀽쫑</div>
-                <div class="item">데이트해</div>
-                <div class="item">노란장판</div>
-            </div>
-            <div class="iframe-box">
-                <iframe src="https://ggyuezzong.postype.com/post/14804580" frameborder="0"></iframe>
-            </div>
-        </a>
-    </section>
+    <section></section>
+    <footer>
+        <p>문의: 트위터 @ggungzzongHub</p>
+        <small>&copy;copyright 2023 All rights reserved</small>
+    </footer>
 </body>
 </html>
