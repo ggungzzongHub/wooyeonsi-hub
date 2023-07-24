@@ -6,37 +6,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>뀽쫑 hub</title>
     <script>
-        fetch("./data.json")
-            .then(response => {
-                return response.json();
-            })
-            .then(jsondata => {
-                for(item of jsondata){
-                    let keywordStr = "";
-                    for(key of item.keyword){
-                        keywordStr += `<div class="item">${key}</div>`;
+        document.addEventListener("DOMContentLoaded", function(){
+            let postList;
+            let lastPostIdx = 0;
+            const postNum = document.body.clientWidth < 1000 ? 5 : 10;
+
+            fetch("./data.json")
+                .then(response => {
+                    return response.json();
+                })
+                .then(jsondata => {
+                    postList = jsondata;
+                    for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
+                        const item = postList[i];
+                        nodeCreator(item);
                     }
+                    lastPostIdx += postNum;
+                });
 
-                    const htmlStr = `<a class="box" href="${item.src}">
-                        <div class="head">
-                            <div class="title">${item.title}</div>
-                            <div class="head-bt">
-                                <div class="wt-name">${item.wrName}</div>
-                                <div class="date">${dateFormat(item.date)}</div>
-                                <div class="cp-name">${item.cpName}</div>
-                            </div>
-                        </div>
-                        <div class="keyword">
-                            ${keywordStr}
-                        </div>
-                        <div class="iframe-box">
-                            <iframe src="${item.src}" frameborder="0"></iframe>
-                        </div>
-                    </a>`;
+            document.addEventListener('scroll', () => {
+                const scrollHeight = document.documentElement.scrollHeight;
+                const scrollTop = document.documentElement.scrollTop;
+                const clientHeight = document.documentElement.clientHeight;
 
-                    document.querySelector("section").insertAdjacentHTML("beforeend", htmlStr);
+                if(scrollTop + clientHeight >= scrollHeight){
+                    for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
+                        const item = postList[i];
+                        nodeCreator(item);
+                    }
+                    lastPostIdx += postNum;
                 }
             });
+        })
 
         /**
          * 날짜 형식 변환기
@@ -45,8 +46,37 @@
         const dateFormat = (dateStr) => {
             return `${dateStr.slice(0, 4)}.${dateStr.slice(4, 6)}.${dateStr.slice(6, 8)}`
         }
+
+        const nodeCreator = (item) => {
+            let keywordStr = "";
+
+            for(key of item.keyword){
+                keywordStr += `<div class="item">${key}</div>`;
+            }
+
+            const htmlStr = `<a class="box" href="${item.src}">
+                <div class="head">
+                    <div class="title">${item.title}</div>
+                    <div class="head-bt">
+                        <div class="wt-name">${item.wrName}</div>
+                        <div class="date">${dateFormat(item.date)}</div>
+                        <div class="cp-name">${item.cpName}</div>
+                    </div>
+                </div>
+                <div class="keyword">
+                    ${keywordStr}
+                </div>
+                <div class="iframe-box">
+                    <iframe src="${item.src}" frameborder="0"></iframe>
+                </div>
+            </a>`;
+
+            document.querySelector("section").insertAdjacentHTML("beforeend", htmlStr);
+        }
+
+        // todo 모바일 화면일 떄 앱 깔라는 알림 어케 없앨까...
     </script>
-    
+
     <style>
         /* http://meyerweb.com/eric/tools/css/reset/ 
         v2.0 | 20110126
