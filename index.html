@@ -6,10 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>뀽쫑 hub</title>
     <script>
+        let postList, postNum, searchPostList;
+        let lastPostIdx = 0;
         document.addEventListener("DOMContentLoaded", function(){
-            let postList;
-            let lastPostIdx = 0;
-            const postNum = document.body.clientWidth < 1000 ? 5 : 10;
+            postNum = document.body.clientWidth < 1000 ? 5 : 10;
 
             fetch("./data.json")
                 .then(response => {
@@ -22,6 +22,7 @@
                         nodeCreator(item);
                     }
                     lastPostIdx += postNum;
+                    searchPostList = postList;
                 });
 
             document.addEventListener('scroll', () => {
@@ -30,13 +31,26 @@
                 const clientHeight = document.documentElement.clientHeight;
 
                 if(scrollTop + clientHeight >= scrollHeight){
-                    for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
-                        const item = postList[i];
-                        nodeCreator(item);
+                    if(searchPostList.length > lastPostIdx){
+                        for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
+                            if(searchPostList.length <= i) break;
+                            const item = searchPostList[i];
+                            nodeCreator(item);
+                        }
+                        lastPostIdx += postNum;
                     }
-                    lastPostIdx += postNum;
                 }
             });
+
+            document.querySelector("input#searchKeyword").addEventListener("keydown", e => {
+                if(e.keyCode == 13){
+                    const keyword = e.target.value;
+                    searchPostList = postList.filter((e) => {
+                        return e.title.indexOf(keyword) != -1 || e.wtName.indexOf(keyword) != -1;
+                    });
+                    console.log(searchPostList);
+                }
+            })
         })
 
         /**
@@ -58,7 +72,7 @@
                 <div class="head">
                     <div class="title">${item.title}</div>
                     <div class="head-bt">
-                        <div class="wt-name">${item.wrName}</div>
+                        <div class="wt-name">${item.wtName}</div>
                         <div class="date">${dateFormat(item.date)}</div>
                         <div class="cp-name">${item.cpName}</div>
                     </div>
@@ -67,9 +81,10 @@
                     ${keywordStr}
                 </div>
                 <div class="iframe-box">
-                    <iframe src="${item.src}" frameborder="0"></iframe>
                 </div>
             </a>`;
+
+            // <iframe src="${item.src}" frameborder="0"></iframe>
 
             document.querySelector("section").insertAdjacentHTML("beforeend", htmlStr);
         }
@@ -129,6 +144,7 @@
 </head>
 <body>
     <header>뀽쫑 hub</header>
+    <nav><input type="text" id="searchKeyword"></nav>
     <section></section>
     <footer>
         <p>문의: 트위터 @ggungzzongHub</p>
