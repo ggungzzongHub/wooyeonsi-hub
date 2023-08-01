@@ -63,8 +63,6 @@
                 if(scrollTop + clientHeight >= scrollHeight){
                     if(searchPostList.length > lastPostIdx){
                         for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
-                            document.querySelector("section").insertAdjacentHTML("beforeend", htmlStr);
-
                             if(searchPostList.length <= i) break;
                             nodeCreator(searchPostList[i]);
                         }
@@ -122,8 +120,18 @@
         }
 
         const searchPost = (keyword = "") => {
+            const selKeywords = new Array();
+            
+            document.querySelectorAll(".row ul li.on").forEach(el => {
+                selKeywords.push(el.dataset.value);
+            })
+
             searchPostList = postList.filter((data) => {
-                return data.title.indexOf(keyword) != -1 || data.wtName.indexOf(keyword) != -1;
+                let isVal = data.title.indexOf(keyword) !== -1 || data.wtName.indexOf(keyword) !== -1;
+                selKeywords.forEach(key => {
+                    isVal = isVal && data.keyword.indexOf(key) !== -1;
+                });
+                return isVal;
             });
 
             if(searchPostList.length === 0){
