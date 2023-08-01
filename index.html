@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>뀽쫑 hub</title>
     <script>
-        let postList, postNum, searchPostList;
+        const exclamationIcon = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 64 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"/></svg>';
+        let postList, postNum, searchPostList, searchKeywordList;
         let lastPostIdx = 0;
         document.addEventListener("DOMContentLoaded", function(){
             postNum = document.body.clientWidth < 1000 ? 5 : 10;
 
+            // 포스트 리스트
             fetch("./data.json")
                 .then(response => {
                     return response.json();
@@ -24,6 +26,34 @@
                     lastPostIdx += postNum;
                     searchPostList = postList;
                 });
+            
+            // 키워드 리스트
+            fetch("./searchKeyword.json")
+                .then(response => {
+                    return response.json();
+                })
+                .then(jsondata => {
+                    searchKeywordList = jsondata;
+                    Object.entries(searchKeywordList).forEach(([key, value]) => {
+                        let keywordLi = "";
+                        for(item of value.keywords){
+                            keywordLi += `<li data-value="${item}">${item}</li>`;
+                        }
+
+                        const htmlStr = `<div class="row" data-value="${key}">
+                            <div class="type">${value.title}</div>
+                            <ul>${keywordLi}</ul>
+                        </div>`;
+
+                        document.querySelector("nav#keywordList").insertAdjacentHTML("beforeend", htmlStr);
+                    });
+                    
+                    document.querySelectorAll("nav#keywordList li").forEach(el => {
+                        el.addEventListener("click", function(e){
+                            e.target.classList.toggle("on");
+                        })
+                    });
+                });
 
             document.addEventListener('scroll', () => {
                 const scrollHeight = document.documentElement.scrollHeight;
@@ -33,9 +63,10 @@
                 if(scrollTop + clientHeight >= scrollHeight){
                     if(searchPostList.length > lastPostIdx){
                         for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
+                            document.querySelector("section").insertAdjacentHTML("beforeend", htmlStr);
+
                             if(searchPostList.length <= i) break;
-                            const item = searchPostList[i];
-                            nodeCreator(item);
+                            nodeCreator(searchPostList[i]);
                         }
                         lastPostIdx += postNum;
                     }
@@ -45,14 +76,15 @@
             document.querySelector("input#searchKeyword").addEventListener("keydown", e => {
                 if(e.keyCode == 13){
                     const keyword = e.target.value;
-                    searchPostList = postList.filter((e) => {
-                        return e.title.indexOf(keyword) != -1 || e.wtName.indexOf(keyword) != -1;
-                    });
-                    console.log(searchPostList);
+                    searchPost(keyword);
                 }
             })
-        })
 
+            document.querySelector("#searchBtn").addEventListener("click", e => {
+                const keyword = document.querySelector("input#searchKeyword").value;
+                searchPost(keyword);
+            })
+        })
         /**
          * 날짜 형식 변환기
          * @param dateStr YYYYMMDDHHMISS
@@ -89,7 +121,25 @@
             document.querySelector("section").insertAdjacentHTML("beforeend", htmlStr);
         }
 
-        // todo 모바일 화면일 떄 앱 깔라는 알림 어케 없앨까...
+        const searchPost = (keyword = "") => {
+            searchPostList = postList.filter((data) => {
+                return data.title.indexOf(keyword) != -1 || data.wtName.indexOf(keyword) != -1;
+            });
+
+            if(searchPostList.length === 0){
+                document.querySelector("section").innerHTML = `<div class='noData'>${exclamationIcon}데이터가 없습니다${exclamationIcon}</div>`;
+                return;
+            }
+
+            document.querySelector("section").innerHTML = "";
+            lastPostIdx = 0;
+            for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
+                nodeCreator(searchPostList[i]);
+            }
+            lastPostIdx += postNum;
+        } 
+
+        // todo 모바일 화면일 떄 앱 깔라는 알림 어케 없앨까... --> iframe이라서 제어 안됨... 불편함을 감수해주세요 여러분
     </script>
 
     <style>
@@ -111,9 +161,28 @@
         q:before, q:after {content: '';content: none;}
         table {border-collapse: collapse;border-spacing: 0;}
         a{color: #000; font-style: none; text-decoration: none;}
-
-        header{font-size: 3rem; text-align: center; margin: 50px 0; font-weight: bold;}
+        
+        ::-webkit-scrollbar {height: 3px; width: 3px;}
+        /* ::-webkit-scrollbar-track {background: #ccc;} */
+        ::-webkit-scrollbar-thumb {height: 10%; background: #7db9fd; border-radius: 10px;}
+        
+        header{font-size: 1.5rem; text-align: center; margin: 20px 0; font-weight: bold;}
         section{display: grid; grid-template-columns: repeat(3, 1fr); max-width: 1300px; margin: 0 auto; gap: 40px; margin-bottom: 50px;}
+        section .noData{display: flex; gap: 10px;align-items: center;justify-content: center;font-weight: bold;}
+        
+        nav#keywordForm {display: flex; margin: 0 20px; gap: 10px; align-items: center;}
+        nav#keywordForm #searchKeyword {flex: 12; padding: 10px; border-radius: 10px; border: #aaa solid 1px;}
+        nav#keywordForm #searchKeyword:focus {outline: none;}
+        nav#keywordForm #searchBtn {flex: 1;}
+        nav#keywordForm svg{fill: #555;}
+        
+        nav#keywordList {padding-bottom: 20px; margin: 10px 0 30px 0; border-bottom: #eee solid 3px; font-size: 0.9rem;}
+        nav#keywordList .row {display: flex; padding: 5px 20px; gap: 10px; align-items: center;}
+        nav#keywordList .row div {flex: 1; border-right: #888 solid 1px; font-weight: bold;}
+        nav#keywordList .row ul {flex: 5; display: flex; justify-content: flex-start; gap: 10px; overflow-x: scroll; box-sizing: border-box;}
+        nav#keywordList .row ul li {padding: 5px; border-radius: 10px; flex: none; margin: 5px 0; color: #555; transition: .2s;}
+        nav#keywordList .row ul li.on {background: #267cdd; color: #fff;}
+
         .box {box-shadow: 0 0 15px #999; border-radius: 10px; overflow: hidden;}
         .box .head{padding: 20px; padding-bottom: 0;}
         .box .head .title {font-weight: bold; font-size: 1.2rem; margin-bottom: 10px;}
@@ -123,9 +192,7 @@
         .box .head .head-bt .cp-name{}
 
         .box .keyword {padding: 10px; display: flex; justify-content: flex-start; gap: 10px; width: 100%; overflow-x: scroll; box-sizing: border-box;}
-        .box .keyword::-webkit-scrollbar {height: 10px;}
-        .box .keyword::-webkit-scrollbar-thumb {height: 10%; background: #ccc; border-radius: 10px;}
-        .box .keyword .item {padding: 10px; background: #eee; border-radius: 1rem; flex: 1; flex: none;}
+        .box .keyword .item {padding: 10px; background: #eee; border-radius: 1rem; flex: none;}
         
         .iframe-box {width: 100%; height: 20rem; overflow: hidden;}
         .iframe-box iframe {height: 40rem; width: 100%; margin-top: -20rem;}
@@ -144,7 +211,15 @@
 </head>
 <body>
     <header>뀽쫑 hub</header>
-    <nav><input type="text" id="searchKeyword"></nav>
+    <nav id="keywordForm">
+        <input type="text" id="searchKeyword" placeholder="제목, 작가명으로 검색이 가능합니다.">
+        <span id="searchBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+            </svg>
+        </span>
+    </nav>
+    <nav id="keywordList"></nav>
     <section></section>
     <footer>
         <p>문의: 트위터 @ggungzzongHub</p>
