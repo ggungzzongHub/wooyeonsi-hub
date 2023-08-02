@@ -7,10 +7,14 @@
     <title>뀽쫑 hub</title>
     <script>
         const exclamationIcon = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 64 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"/></svg>';
-        let postList, postNum, searchPostList, searchKeywordList;
+        let postList, postNum, searchPostList, searchKeywordList, isLight;
         let lastPostIdx = 0;
         document.addEventListener("DOMContentLoaded", function(){
-            postNum = document.body.clientWidth < 1000 ? 5 : 10;
+            postNum = document.body.clientWidth < 1000 ? 5 : 10; // 무한 스크롤 로딩 갯수
+
+            isLight = getCookie("isLight");
+            setCookie("isLight", isLight); // 첫 방문일시
+            document.getElementById(isLight ?  "light" : "block").classList.add("on");
 
             // 포스트 리스트
             fetch("./data.json")
@@ -20,7 +24,7 @@
                 .then(jsondata => {
                     postList = jsondata;
                     searchPostList = postList;
-                    // postList.sort(() => Math.random() - 0.5); // 접근할 때마다 랜덤으로 뿌리는 거 할 말?
+                    // postList.sort(() => Math.random() - 0.5); // 접근할 때마다 랜덤으로 뿌리는 거 할 말? --> 셔플 아이콘 추가해서 선택하게 만들까?
                     for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
                         const item = postList[i];
                         nodeCreator(item);
@@ -77,13 +81,70 @@
                     const keyword = e.target.value;
                     searchPost(keyword);
                 }
-            })
+            });
 
             document.querySelector("#searchBtn").addEventListener("click", e => {
                 const keyword = document.querySelector("input#searchKeyword").value;
                 searchPost(keyword);
-            })
-        })
+            });
+
+            document.querySelectorAll("article span").forEach(el => {
+                el.addEventListener("click", e => {
+                    if(e.currentTarget.classList.value.indexOf("on") !== -1) return;
+
+                    document.querySelectorAll("article span").forEach(el => el.classList.remove("on"));
+                    e.currentTarget.classList.add("on");
+                    isLight = e.currentTarget.id === "light" ? true : false;
+
+                    setCookie("isLight", isLight);
+
+                    if(isLight){
+                        document.querySelectorAll(".iframe-box").forEach(el => el.remove());
+                    }else{
+                        document.querySelectorAll(".box").forEach(el => {
+                            const url = el.attributes.getNamedItem("href").nodeValue;
+                            const iframe = 
+                                `<div class="iframe-box">
+                                    <iframe class="${url.indexOf("postype") !== -1 ? "postype" : ""}" src="${url}" frameborder="0"></iframe>
+                                </div>`;
+                            el.insertAdjacentHTML("beforeend", iframe);
+                        });
+                    }
+                })
+            });
+        });
+
+        const getCookie = (name) => {
+            let matches = document.cookie.match(new RegExp(
+                "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+            ));
+            return matches ? decodeURIComponent(matches[1]) : undefined;
+        }
+
+        const setCookie = (name, value, options = {}) => {
+            options = {
+                path: '/',
+                // 필요한 경우, 옵션 기본값을 설정할 수도 있습니다.
+                ...options
+            };
+
+            if (options.expires instanceof Date) {
+               options.expires = options.expires.toUTCString();
+            }
+
+            let updatedCookie = encodeURIComponent(name) + "=" + encodeURIComponent(value);
+
+            for (let optionKey in options) {
+                updatedCookie += "; " + optionKey;
+                let optionValue = options[optionKey];
+                if (optionValue !== true) {
+                    updatedCookie += "=" + optionValue;
+                }
+            }
+
+            document.cookie = updatedCookie;
+        }
+
         /**
          * 날짜 형식 변환기
          * @param dateStr YYYYMMDDHHMISS
@@ -99,6 +160,11 @@
                 keywordStr += `<div class="item">${key}</div>`;
             }
 
+            const iframe = isLight ? "" :
+                `<div class="iframe-box">
+                    <iframe class="${item.src.indexOf("postype") !== -1 ? "postype" : ""}" src="${item.src}" frameborder="0"></iframe>
+                </div>`;
+
             const htmlStr = `<a class="box" href="${item.src}">
                 <div class="head">
                     <div class="title">${item.title}</div>
@@ -111,9 +177,7 @@
                 <div class="keyword">
                     ${keywordStr}
                 </div>
-                <div class="iframe-box">
-                    <iframe class="${item.src.indexOf("postype") !== -1 ? "postype" : ""}" src="${item.src}" frameborder="0"></iframe>
-                </div>
+                ${iframe}
             </a>`;
 
 
@@ -143,12 +207,13 @@
             document.querySelector("section").innerHTML = "";
             lastPostIdx = 0;
             for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
+                if(i >= searchPostList.length) break;
                 nodeCreator(searchPostList[i]);
             }
             lastPostIdx += postNum;
         } 
 
-        // todo 모바일 화면일 떄 앱 깔라는 알림 어케 없앨까... --> iframe이라서 제어 안됨... 불편함을 감수해주세요 여러분
+        // todo 모바일 화면일 때 앱 깔라는 알림 어케 없앨까... --> iframe이라서 제어 안됨... 불편함을 감수해주세요 여러분
     </script>
 
     <style>
@@ -190,12 +255,16 @@
         nav#keywordForm #searchBtn {flex: 1;}
         nav#keywordForm svg {fill: #555;}
         
-        nav#keywordList {padding-bottom: 20px; margin: 10px auto 30px auto; border-bottom: #eee solid 3px; font-size: 0.9rem;}
+        nav#keywordList {/* padding-bottom: 20px; */margin: 10px auto;/* border-bottom: #eee solid 3px; */font-size: 0.9rem;}
         nav#keywordList .row {display: flex; padding: 5px 20px; gap: 10px; align-items: center;}
         nav#keywordList .row div {flex: 1; border-right: #888 solid 1px; font-weight: bold;}
         nav#keywordList .row ul {flex: 5; display: flex; justify-content: flex-start; gap: 10px; overflow-x: scroll; box-sizing: border-box;}
         nav#keywordList .row ul li {padding: 5px; border-radius: 10px; flex: none; margin: 5px 0; color: #555;}
         nav#keywordList .row ul li.on {background: #267cdd; color: #fff;}
+        
+        article {display: flex;gap: 20px;justify-content: flex-end;padding: 10px;border-top: 3px solid #ccc;max-width: 1300px;margin: 0 auto 30px auto;border-bottom: 3px solid #ccc;}
+        article span {fill: #aaa; border-radius: 5px; padding: 5px 7px;}
+        article span.on {background: #267cdd; fill: #fff;}
 
         .box {box-shadow: 0 0 15px #999; border-radius: 10px; overflow: hidden;}
         .box .head{padding: 20px; padding-bottom: 0;}
@@ -208,9 +277,9 @@
         .box .keyword {padding: 10px; display: flex; justify-content: flex-start; gap: 10px; width: 100%; overflow-x: scroll; box-sizing: border-box;}
         .box .keyword .item {padding: 10px; background: #eee; border-radius: 1rem; flex: none;}
         
-        .iframe-box {width: 100%; height: 20rem; overflow: hidden;}
-        .iframe-box iframe {height: 20rem; width: 100%;}
-        .iframe-box iframe.postype {height: 40rem; width: 100%; margin-top: -20rem;}
+        .box .iframe-box {width: 100%; height: 20rem; overflow: hidden;}
+        .box .iframe-box iframe {height: 20rem; width: 100%;}
+        .box .iframe-box iframe.postype {height: 40rem; width: 100%; margin-top: -20rem;}
 
         footer p {display: flex; justify-content: center; align-items: center; gap: 10px;}
         footer #link {display: inline-block; width: 30px; height: 30px;}
@@ -239,11 +308,15 @@
         </span>
     </nav>
     <nav id="keywordList"></nav>
+    <article>
+        <span id="light"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/></svg></span>
+        <span id="block"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M448 96V224H288V96H448zm0 192V416H288V288H448zM224 224H64V96H224V224zM64 288H224V416H64V288zM64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64z"/></svg></span>
+    </article>
     <section></section>
     <footer>
         <p>
             문의: 트위터<b>@ggungzzongHub</b>
-            <a id="link" href="https://twitter.com/ggungzzongHub"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg></a>
+            <a id="link" href="https://twitter.com/ggungzzongHub"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512">! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc.<path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg></a>
         </p>
         <p>
             <a id="sheet" src="https://docs.google.com/spreadsheets/d/1yav_51R4UY_uTrQSCe2t8vVp89Hdlw-1stw9-Dp-iVo/edit?usp=sharing">등록 링크</a>
