@@ -10,10 +10,10 @@
         let postList, postNum, searchPostList, searchKeywordList, isLight;
         let lastPostIdx = 0;
         document.addEventListener("DOMContentLoaded", function(){
-            postNum = document.body.clientWidth < 1000 ? 5 : 10; // 무한 스크롤 로딩 갯수
+            postNum = document.body.clientWidth > 700 ? (document.body.clientWidth > 1000 ? 10 : 8 ) : 5; // 무한 스크롤 로딩 갯수
 
-            isLight = getCookie("isLight");
-            setCookie("isLight", isLight); // 첫 방문일시
+            isLight = typeof(getCookie("isLight")) !== "undefined" ? JSON.parse(getCookie("isLight")) : true; //처음 접근하면
+            setCookie("isLight", isLight);
             document.getElementById(isLight ?  "light" : "block").classList.add("on");
 
             // 포스트 리스트
@@ -24,7 +24,6 @@
                 .then(jsondata => {
                     postList = jsondata;
                     searchPostList = postList;
-                    // postList.sort(() => Math.random() - 0.5); // 접근할 때마다 랜덤으로 뿌리는 거 할 말? --> 셔플 아이콘 추가해서 선택하게 만들까?
                     for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
                         const item = postList[i];
                         nodeCreator(item);
@@ -88,11 +87,22 @@
                 searchPost(keyword);
             });
 
-            document.querySelectorAll("article span").forEach(el => {
+            document.querySelector("#shuffle").addEventListener("click", e => {
+                searchPostList.sort(() => Math.random() - 0.5);
+                document.querySelector("section").innerHTML = "";
+                lastPostIdx = 0;
+                for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
+                    if(i >= searchPostList.length) break;
+                    nodeCreator(searchPostList[i]);
+                }
+                lastPostIdx += postNum;
+            });
+
+            document.querySelectorAll("article #layout span").forEach(el => {
                 el.addEventListener("click", e => {
                     if(e.currentTarget.classList.value.indexOf("on") !== -1) return;
 
-                    document.querySelectorAll("article span").forEach(el => el.classList.remove("on"));
+                    document.querySelectorAll("article #layout span").forEach(el => el.classList.remove("on"));
                     e.currentTarget.classList.add("on");
                     isLight = e.currentTarget.id === "light" ? true : false;
 
@@ -309,8 +319,13 @@
     </nav>
     <nav id="keywordList"></nav>
     <article>
-        <span id="light"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/></svg></span>
-        <span id="block"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M448 96V224H288V96H448zm0 192V416H288V288H448zM224 224H64V96H224V224zM64 288H224V416H64V288zM64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64z"/></svg></span>
+        <div>
+            <span id="shuffle"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M403.8 34.4c12-5 25.7-2.2 34.9 6.9l64 64c6 6 9.4 14.1 9.4 22.6s-3.4 16.6-9.4 22.6l-64 64c-9.2 9.2-22.9 11.9-34.9 6.9s-19.8-16.6-19.8-29.6V160H352c-10.1 0-19.6 4.7-25.6 12.8L284 229.3 244 176l31.2-41.6C293.3 110.2 321.8 96 352 96h32V64c0-12.9 7.8-24.6 19.8-29.6zM164 282.7L204 336l-31.2 41.6C154.7 401.8 126.2 416 96 416H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H96c10.1 0 19.6-4.7 25.6-12.8L164 282.7zm274.6 188c-9.2 9.2-22.9 11.9-34.9 6.9s-19.8-16.6-19.8-29.6V416H352c-30.2 0-58.7-14.2-76.8-38.4L121.6 172.8c-6-8.1-15.5-12.8-25.6-12.8H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H96c30.2 0 58.7 14.2 76.8 38.4L326.4 339.2c6 8.1 15.5 12.8 25.6 12.8h32V320c0-12.9 7.8-24.6 19.8-29.6s25.7-2.2 34.9 6.9l64 64c6 6 9.4 14.1 9.4 22.6s-3.4 16.6-9.4 22.6l-64 64z"/></svg></span>
+        </div>
+        <div id="layout">
+            <span id="light"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/></svg></span>
+            <span id="block"><svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M448 96V224H288V96H448zm0 192V416H288V288H448zM224 224H64V96H224V224zM64 288H224V416H64V288zM64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V96c0-35.3-28.7-64-64-64H64z"/></svg></span>
+        </div>
     </article>
     <section></section>
     <footer>
