@@ -51,7 +51,7 @@
         nav#keywordList .row {display: flex; padding: 5px 20px; gap: 10px; align-items: center;}
         nav#keywordList .row div {flex: 1; border-right: #888 solid 1px; font-weight: bold;}
         nav#keywordList .row ul {flex: 5; display: flex; justify-content: flex-start; gap: 10px; overflow-x: scroll; box-sizing: border-box;}
-        nav#keywordList .row ul li {padding: 5px; border-radius: 10px; flex: none; margin: 5px 0; color: #555;}
+        nav#keywordList .row ul li {padding: 5px; border-radius: 10px; flex: none; margin: 5px 0; color: #555; cursor: pointer;}
         nav#keywordList .row ul li.on {background: #267cdd; color: #fff;}
         
         article {display: flex;gap: 20px;justify-content: flex-end;padding: 10px;border-top: 3px solid #ccc;max-width: 1300px;margin: 0 auto 30px auto;border-bottom: 3px solid #ccc;}
@@ -106,7 +106,7 @@
                     return response.json();
                 })
                 .then(jsondata => {
-                    postList = jsondata;
+                    postList = jsondata.sort((a, b) => b.date - a.date);
                     searchPostList = postList;
                     for(let i = lastPostIdx; i < lastPostIdx + postNum; i++){
                         const item = postList[i];
