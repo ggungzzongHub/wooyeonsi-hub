@@ -101,7 +101,7 @@
             document.getElementById(isLight ?  "light" : "block").classList.add("on");
 
             // 포스트 리스트
-            fetch("./data.json")
+            fetch("/data.json?20230913")
                 .then(response => {
                     return response.json();
                 })
@@ -116,7 +116,7 @@
                 });
             
             // 키워드 리스트
-            fetch("./searchKeyword.json")
+            fetch("/searchKeyword.json?20230913")
                 .then(response => {
                     return response.json();
                 })
